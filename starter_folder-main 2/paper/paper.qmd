@@ -1,0 +1,221 @@
+---
+title: "Seasonal Patterns in Traffic Collisions: Does the Winter Season Increase the Number of Injury Collisions? "
+author: 
+  - Jingchuan Xu
+thanks: "Code and data are available at: https://github.com/Jonathan666Charlie/Building-Permits---Solar-Hot-Water-Heaters-Analysis.git."
+date: 27 September 2024
+date-format: long
+abstract: "This study analyzed traffic collisions data from different seasons in Toronto between 2014 and 2023, focusing on the impact of severe winter weather on traffic injury collisions. By using data from the annual Traffic Statistics report published by Toronto Police, the study found that the number of winter injury collisions increased significantly in some years, especially during snow and ice weather conditions. At the same time, the number of injury collisions in spring and autumn was relatively stable, while in 2020 and 2021, the number of injury collisions in all seasons generally declined due to the COVID-19 pandemic. The study not only shows seasonal differences in traffic injury collisions, but also explores the impact of factors such as policy and climate change on injury collisions in different seasons. The results of the study will provide a reference for the City of Toronto to formulate traffic safety policies and winter emergency measures."
+format: pdf
+number-sections: true
+bibliography: references.bib
+---
+
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(lubridate)
+library(dplyr)
+library(opendatatoronto)
+```
+
+
+# Introduction
+In Toronto, severe winter weather contributes to a huge challenge for road safety. Frequent snowfall, icy roads and reduced visibility can significantly increase the risk of injury from traffic collisions. According to previous studies, poor driving conditions in winter are closely associated with a rise in the number of traffic collisions. Although many studies of traffic accidents in cold climates focus on a global scale, such as those in Norway and Sweden, there is still less localized analysis of this particular city, Toronto. The purpose of this paper is to analyze traffic collisions data between 2014 and 2023 to assess the occurrence of the number of injury caused by traffic collisions in Toronto in different seasons, especially in winter, and to explore the impact of severe weather on the number of injury traffic collisions.
+
+We focused on winter injury traffic collisions trends based on the annual traffic statistics report from the Toronto Police Service. The data presented in the chart shows that while autumn is usually the season with the highest number of injury traffic collisions, the number of injury traffic collisions in winter rises significantly in some years, such as 2020. This phenomenon can be related to a sudden deterioration of road conditions, such as slippery roads caused by heavy snow or ice, which increases the risk of vehicle loss of control. We also found that lockdown policies implemented during the COVID-19 pandemic had a significant impact on injury traffic collisions in the winter of 2020 and 2021. Due to fewer vehicle trips, the number of injury traffic collisions in these two winter years dropped significantly.
+
+In addition to weather conditions, other factors may also affect injury traffic collisions in winter, such as the government's road maintenance policies, drivers' habits, and so on. Therefore, this study not only focuses on the impact of weather on injury traffic collisions, but also explores how changes in traffic policy and driving behavior affect the frequency of injury collisions. Through these analyses, we aim to provide a scientific basis for the formulation of traffic safety policies, especially for the improvement of road safety in winter.
+
+In this analysis, we use @citeR to explore the "Police Annual Statistical Report - Traffic Collisions" data package. The R package `tidyverse` was employed for comprehensive data manipulation and cleaning tasks, including organizing and structuring the dataset (@citetidyverse). We utilized `dplyr` specifically to filter, transform, and aggregate the data, enabling the calculation of seasonal and annual traffic collision trends (@citedplyr). The `lubridate` package was instrumental in handling and processing date-related variables, such as converting months and years into seasonal categories for further analysis (@citelubridate). Additionally, we accessed the traffic collisions data from the "Police Annual Statistical Report" directly from the City of Toronto's Open Data Portal using the `opendatatoronto` package to download and load the dataset for analysis (@citeopendatatoronto).
+
+The remainder of this paper is structured as follows: @sec-data discusses
+
+# Data {#sec-data}
+
+## Data Source and Background
+The data for this analysis comes from the "Annual Police Statistical Report - Traffic Collisions" , which is available on Open Data Toronto. This data records traffic collisions within the Toronto area. The data is accessed by using the `opendatatoronto` R package, focusing specifically on historical traffic collision data, with injury-related accidents being simulated through a Poisson distribution.
+
+The dataset provides both daily and seasonal statistics regarding traffic collisions, with a particular focus on injury-related traffic collisions. Key variables include the year and month of occurrence, the count of injury-related collisions, and a derived seasonal variable based on the month. This analysis offers insights into how injury traffic collisions are distributed across different seasons and highlights potential temporal factors such as weather.
+
+
+## Variables and Definitions
+The data tracks several important variables. These include `OCC_YEAR` (the year of the accident), `OCC_MONTH` (the month of the incident), and `injury_collisions` (the count of collisions that resulted in injuries). A `season` variable was also created based on the month of the year, categorizing each entry as Spring, Summer, Autumn, or Winter. The data was grouped by season and year to summarize the total number of injury collisions per season.
+
+Although this dataset has some limitations, such as the inability to track the temporal changes of specific collisions and the lack of precise address information for some events, it still provides valuable insights into the analysis of seasonal patterns of traffic collisions. For privacy reasons, geographic information, such as by jurisdiction or neighborhood, may not fully reflect where actual accidents occur, and the dataset contains only reported accidents within the city of Toronto, excluding unreported cases. Hence, direct comparisons with other data sources should not be made. Despite these challenges, the dataset remains an important resource in understanding the seasonal dynamics of traffic accidents and safety issues.
+
+## Visualization of Cleaned Data
+
+```{r}
+#| label: fig-collisions-csv
+#| fig-cap: number of injury from traffic collisions every season within years
+#| echo: false
+
+injury_traffic_collisions_data <-
+  read_csv(
+    file = here::here("data", "analysis_data", "simulated.csv"), 
+    show_col_types = FALSE
+  )
+
+```
+@fig-collisions-csv shows the number of traffic collisions-related injuries in each season of the year. Through the cleaned data, we were able to clearly see the trend of injury collisions by season in different years. The traffic collisions data for each year was classified into spring, summer, fall, and winter, and the number of injury collisions for each season was summarized. This can help us analyze the traffic safety situation in each season, find out the high incidence period of collisions, and further evaluate the impact of seasonal factors on traffic safety.
+
+```{r}
+#| label: fig-collisions-boxplot
+#| fig-cap: number of injury from traffic collisions every season within years
+#| echo: false
+ggplot(simulated_traffic_collisions_each_season, aes(x = season, y = injury_collisions)) +
+  geom_boxplot() +
+  labs(title = "Seasonal Variation in Simulated Traffic Collisions",
+       x = "Season", y = "injury Collisions")
+
+```
+@fig-collisions-boxplot shows the distribution of traffic injuries in different seasons: fall, spring, summer, and winter. The boxes in each box plot represent the median and interquartile range of the number of injuries for that season, the lines represent the distribution of the data, and the outliers represent abnormally high or low numbers of accidents. Through these data, it is possible to clearly see the change in the number of accidents between seasons.
+
+As can be seen from @fig-collisions-boxplot, the number of injury traffic collisions in autumn is high and the distribution range is wide, which may be the season of high accidents in the whole year. In contrast, the number of accidents in spring is relatively small, and there are some unusually low values, indicating that there are some years or situations in which spring has a lower incidence of traffic accidents. The distribution of traffic accidents in summer and winter is relatively close, and the number of accidents in summer is slightly higher than that in winter, and the distribution range is slightly larger.
+
+```{r}
+#| label: fig-collions-line
+#| fig-cap: Relationship between wing length and width
+#| echo: false
+#| warning: false
+#| message: false
+
+analysis_data <- read_csv(here::here("data/analysis_data/simulated.csv"))
+
+analysis_data |> 
+  ggplot(analysis_data, aes(x = OCC_YEAR, y = injury_collisions, color = season)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Total Injury Collisions Across Seasons and Years",
+       x = "Year",
+       y = "Total Injury Collisions",
+       color = "Season") +
+  theme_minimal()
+```
+
+@fig-collions-line presents the relationship between the total number of injury traffic collisions per year by season. By visualizing the data for different years and seasons, we can observe if there are significant patterns or trends. For example, if there is a rise in the number of injury-related traffic collisions in winter, it may indicate the impact of adverse weather conditions on traffic safety. And the decrease in the number of accidents in summer, may mean less dangerous road conditions or different traffic behavior. 
+
+@fig-collions-linehelps to identify seasonal peaks and valleys of accident occurrences, enabling policy makers to enhance traffic safety measures in a specific time period. In addition, by color-coding by season, the trends of different seasons can be clearly distinguished, which facilitates the comparison of the number of accidents between seasons. With this analysis, we aim to better understand how seasonal factors affect road safety and their contribution to injury traffic collisions across years.
+
+
+
+# Results
+
+Our results are summarized in @tbl-modelresults.
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| message: false
+
+library(rstanarm)
+
+first_model <-
+  readRDS(file = here::here("models/first_model.rds"))
+```
+
+```{r}
+#| echo: false
+#| eval: true
+#| label: tbl-modelresults
+#| tbl-cap: "Explanatory models of flight time based on wing width and wing length"
+#| warning: false
+
+modelsummary::modelsummary(
+  list(
+    "First model" = first_model
+  ),
+  statistic = "mad",
+  fmt = 2
+)
+```
+
+
+
+
+# Discussion
+
+## First discussion point {#sec-first-point}
+
+If my paper were 10 pages, then should be be at least 2.5 pages. The discussion is a chance to show off what you know and what you learnt from all this. 
+
+## Second discussion point
+
+## Third discussion point
+
+## Weaknesses and next steps
+
+Weaknesses and next steps should also be included.
+
+\newpage
+
+\appendix
+
+# Appendix {-}
+
+
+# Additional data details
+
+# Model details {#sec-model-details}
+
+## Posterior predictive check
+
+In @fig-ppcheckandposteriorvsprior-1 we implement a posterior predictive check. This shows...
+
+In @fig-ppcheckandposteriorvsprior-2 we compare the posterior with the prior. This shows... 
+
+```{r}
+#| eval: true
+#| echo: false
+#| message: false
+#| warning: false
+#| label: fig-ppcheckandposteriorvsprior
+#| layout-ncol: 2
+#| fig-cap: "Examining how the model fits, and is affected by, the data"
+#| fig-subcap: ["Posterior prediction check", "Comparing the posterior with the prior"]
+
+pp_check(first_model) +
+  theme_classic() +
+  theme(legend.position = "bottom")
+
+posterior_vs_prior(first_model) +
+  theme_minimal() +
+  scale_color_brewer(palette = "Set1") +
+  theme(legend.position = "bottom") +
+  coord_flip()
+```
+
+## Diagnostics
+
+@fig-stanareyouokay-1 is a trace plot. It shows... This suggests...
+
+@fig-stanareyouokay-2 is a Rhat plot. It shows... This suggests...
+
+```{r}
+#| echo: false
+#| eval: true
+#| message: false
+#| warning: false
+#| label: fig-stanareyouokay
+#| fig-cap: "Checking the convergence of the MCMC algorithm"
+#| fig-subcap: ["Trace plot", "Rhat plot"]
+#| layout-ncol: 2
+
+plot(first_model, "trace")
+
+plot(first_model, "rhat")
+```
+
+
+
+\newpage
+
+
+# References
+
+
